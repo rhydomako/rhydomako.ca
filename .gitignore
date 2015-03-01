@@ -1,0 +1,5 @@
+*.pyc
+.doit.db.db
+cache/
+posts/.ipynb_checkpoints/
+output/
