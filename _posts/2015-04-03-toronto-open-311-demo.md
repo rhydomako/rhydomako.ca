@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Toronto 311 service call visualization"
-permalink: "311"
+permalink: /311/index.html
 author: Richard Hydomako
 github: rhydomako
 date:   2015-04-03 23:10:34
