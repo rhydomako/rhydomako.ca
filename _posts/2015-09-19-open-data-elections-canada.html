@@ -1,0 +1,345 @@
+---
+layout: post
+title:  "Instant-runoff voting simulation for 2011 Canadian election"
+permalink: "elections-canada-irv"
+author: Richard Hydomako
+github: rhydomako
+date:   2015-09-19 19:15:34
+---
+
+    <link href="/css/leaflet.css" rel="stylesheet" />
+    <style>
+      #irv_map {
+        width:  100%;
+        height: 550px;
+      }
+      svg {
+                position: relative;
+      }
+      path { 
+        stroke: #c0c0c0;
+        stroke-width: 0.5;
+        stroke-linejoin: round;
+      }
+        path:hover {
+        fill-opacity: 0.8;
+      }
+
+      .d3-tip {
+        line-height: 1;
+        font-weight: bold;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.8);
+        color: #000;
+        border-radius: 2px;
+      }
+
+      /* Creates a small triangle extender for the tooltip */
+      .d3-tip:after {
+        box-sizing: border-box;
+        display: inline;
+        font-size: 10px;
+        width: 100%;
+        line-height: 1;
+        color: rgba(0, 0, 0, 0.8);
+        content: "\25BC";
+        position: absolute;
+        text-align: center;
+      }
+
+      /* Style northward tooltips differently */
+      .d3-tip.n:after {
+        margin: -1px 0 0 0;
+        top: 100%;
+        left: 0;
+      }
+
+      .breakdown-cell {
+        background-color: rgb(238,238,238);
+        border-bottom-left-radius: 6px;
+        border-bottom-right-radius: 6px;
+        border-top-left-radius: 6px;
+        border-top-right-radius: 6px;
+        box-sizing: border-box;
+        color: rgb(51, 51, 51);
+        display: block;
+        font-size: 14px;
+        line-height: 20px;
+        margin-bottom: 30px;
+        margin-left:10px;
+        margin-right:10px;
+        padding-bottom: 30px;
+        padding-top: 30px;
+        height: 400px;
+      }
+    </style>
+
+          <div id="irv_map"></div>
+          <h2>Overall results</h2>
+          <div id="results-table"></div>
+        <div class="col-md-4"><h2><span id="breakdown-title" style="display: none">Riding breakdown</span></h2></div>
+        <div id="riding-breakdown"></div>
+
+    <p><em>Explaination</em><br><br>
+        Currently, the winner of an election in the Canadian system is determined through a system called <a href="https://en.wikipedia.org/wiki/First-past-the-post_voting">First Past The Post</a> (FPTP), wherein whichever candidate that receives the plurality of votes is declared the winner. Although FPTH is easy to understand and interprete, in a multi-party system it often faces the criticism that candidates can be elected without carrying the majority of votes and this can contribute to many voters feeling that their votes were 'wasted' since in no way did their votes contribute to the election of their representative. For example, in the 2011 Canadian general election, a grand total of 14873962 valid votes were cast, and 7495961 of those votes were for the ultimately elected candidates. This means that for 50% of the voters, their political choice was not represented in the final outcome.<br><br>
+
+        There are many alternate voting systems that mitigate these concerns, such as <a href="https://en.wikipedia.org/wiki/Proportional_representation">Proportional representational</a> systems like <a href="https://en.wikipedia.org/wiki/Single_transferable_vote">Single transferable vote</a>. For single-winner elections, the Single transferable vote systems is known as <a href="https://en.wikipedia.org/wiki/Instant-runoff_voting">Instant-runoff voting</a>. In this system, each voter ranks the candidates in order of preference. The vote counting is then conducted in rounds: for each round that none of the candidates receives a majority of votes, the candidate with the fewest vote is taken off the list and their votes are redistruted according to the stated preference of those voters.<br><br>
+
+        To see what the 2011 Canadian general election might've looked like under the Instant-runoff voting system, I conducted a simulation using the finally polling results from the 2011 elections, combined with a voter preference model based on opinion polling by <a href="http://www.ekospolitics.com/wp-content/uploads/full_report_april_29_2011.pdf">EKOS</a> just before the election. As part of the opinion polling, voters were asked who their second choices would be, where they not voting for their primary choice. With this information, I applied this voter-preference model to those elections where there wasn't a clear initial majority winner. The votes were redistributed according to the probability model and following the rules of the Instant-runoff system. The overall simulation results are summarized in the 'Results' table, and individual riding can be examined by click on the district on the interactive map. 
+        </p>
+        <p>Source on <a href="https://github.com/rhydomako/open-data-elections-canada">Github</a></p>
+
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/underscore.js"></script>
+    <script src="/js/leaflet.js"></script>
+    <script src="/js/queue.v1.min.js"></script>
+    <script src="/js/d3.v3.min.js"></script>
+    <script src="/js/d3.tip.v0.6.3.js"></script>
+    <script src="/js/topojson.v1.min.js"></script>
+
+    <script>
+      var colours = {"NDP-New Democratic Party": '#F78320', "Conservative": '#263893', "Liberal": '#D71921',
+                             "Green Party": '#3D9B35', "Bloc Québécois": '#00A7EC', "Other": 'grey'};
+
+      //
+      // Map defintion
+      //
+      var viewSettings = {
+        mapCentreLat: 59,
+        mapCentreLong: -95,
+        mapZoom: 3.8,
+      };
+      var map = L.map('irv_map', {zoomControl: true, minZoom: 3})
+                 .setView([viewSettings.mapCentreLat, viewSettings.mapCentreLong], viewSettings.mapZoom);
+
+      map.scrollWheelZoom.disable();
+      //
+      // SVG
+      //
+      var svg = d3.select(map.getPanes().overlayPane)
+        .append("svg");
+      var   g = svg.append("g").attr("class", "leaflet-zoom-hide");
+
+      var ridingBreakdownDiv = d3.select("#riding-breakdown");
+
+      var tip = d3.tip()
+        .attr('class','d3-tip')
+        .offset(function() {
+          var BBoxHeight = this.getBBox().height;
+          if(BBoxHeight > 300) {
+            return [BBoxHeight*2./3., 0];
+          } else {
+            return [-10, 0];
+          }
+        })
+        .html(function(d) {
+          var party = d.properties.results.elected_party;
+          return "<strong>" + d.properties.FEDENAME + "</strong><br>" 
+           + '<span style="color:' + colours[party] + '">' + d.properties.results.elected_party + "</span><br>"
+           + 'Simulated number of votes: ' + d.properties.results.elected_votes + '<br><span style="color:grey">(click for breakdown)</span>';
+        })
+
+      svg.call(tip);
+
+      //
+      // Overall result
+      //
+      // column definitions
+      var overallColumns = [
+        { head: 'Party', cl: 'title' },
+        { head: 'First past the post', cl: 'center' },
+        { head: 'Instant run-off (simulated)', cl: 'center' },
+      ];
+
+      var overallResultTable = d3.select("#results-table").append("table").attr('class', 'table')
+      var overallResultHeader = overallResultTable.append("thead")
+          .append("tr")
+          .selectAll("th")
+          .data(overallColumns)
+        .enter()
+          .append("th")
+          .attr('class', function(d) { return d.cl; })
+          .text(function(d) { return d.head; });
+
+
+      function init(error, electoral_districts, irv_simulation) {
+
+        var transform = d3.geo.transform({point: projectPoint});
+        var path = d3.geo.path().projection(transform);
+
+        var district_features = topojson.feature(electoral_districts, electoral_districts.objects.electoral_districts);
+
+        //join topo-features with simulation results
+        district_features.features.forEach( function(d) {
+          d.properties['results'] = irv_simulation[d.properties.FEDUID];
+        });
+
+        //electoral district shape
+        var feature = g.selectAll('path')
+            .data(district_features.features)
+          .enter()
+            .append("path")
+            .attr("fill", function(d) { return colours[d.properties.results.elected_party]; })
+            .attr("d", path)
+            .on('mouseover', tip.show)
+            .on('click', function(d) { return ridingBreakdown(d); })
+            .on('mouseout', tip.hide);
+
+        //compile results from simulation json
+        var overallResult = _.chain(irv_simulation)
+            .map(function(d) { return d['elected_party']; })
+            .groupBy(_.identity)
+            .map(function(v,k) {
+                return {'party':k, 'irv_seats':v.length}
+            })
+            .sortBy(function(d) { return d.seats; })
+            .value()
+            .reverse();
+
+        fptpResult = [{'party':'Conservative', 'fptp_seats':166},
+                      {'party':'NDP-New Democratic Party','fptp_seats':103},
+                      {'party':'Liberal', 'fptp_seats':34},
+                      {'party':'Bloc Québécois', 'fptp_seats':4},
+                      {'party':'Green Party', 'fptp_seats':1}]
+
+        var combinedResults = _.map(fptpResult, function(d) {
+              var irv_index = _.indexBy(overallResult, 'party')[d.party];
+              var irv_seats; 
+              if (irv_index) {
+                irv_seats = irv_index.irv_seats;
+              } else {
+                irv_seats = 0;
+              };
+              return {'party':d.party, 'fptp_seats':d.fptp_seats, 'irv_seats':irv_seats };
+            })
+
+        //handle right-hand-side table
+        var overallResultBody = overallResultTable.append("tbody")
+            .selectAll("tr")
+            .data(combinedResults)
+          .enter()
+            .append("tr")
+            .selectAll("td")
+            .data( function(row, i) { 
+              return [row.party, row.fptp_seats, row.irv_seats]; 
+            })
+          .enter()
+            .append("td")
+            .html( function(d) { return d; });
+              
+        map.on("viewreset", viewReset);
+        viewReset();
+
+        //leaflet overlay map manipulation
+        function viewReset() {
+
+          var bounds = path.bounds(district_features),
+            topLeft = bounds[0],
+            bottomRight = bounds[1];
+
+          svg .attr("width", bottomRight[0] - topLeft[0])
+              .attr("height", bottomRight[1] - topLeft[1])
+              .style("left", topLeft[0] + "px")
+              .style("top", topLeft[1] + "px");
+
+          g.attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
+
+          feature.attr("d", path);
+        }
+
+
+        function ridingBreakdown(riding) {
+
+          var rounds = riding.properties.results.rounds;
+          var candidates = riding.properties.results.candidates;
+          var mapped_candidates = _.indexBy(candidates,'id');
+
+          var initial_votes = _.object( _.pluck(candidates,'id'), _.pluck(candidates,'votes'));
+
+          function breakdowns(rounds, round, initial_votes) { 
+            return _.reduce(rounds.slice(0,round), function(a,b) {
+              var bb = _.object( _.pluck(b,'id'), _.pluck(b,'votes') )
+              var ks = _.union(_.keys(a), _.keys(bb));
+              var vs = _.map(ks, function(k) { return (a[k] || 0) + (bb[k] || 0) });
+              return _.object(ks,vs);
+            }, initial_votes);
+          };
+
+          var all_breakdowns = _.map(_.range(rounds.length + 1), function(d) { return breakdowns(rounds,d,initial_votes); });
+          if(all_breakdowns.length == 0) {
+              all_breakdowns = [initial_votes];
+          }
+          
+          var breakdownColumns = [
+            { head: 'Candiate', cl: 'title' },
+            { head: 'Votes', cl: 'center' },
+          ];
+
+
+          //clear any existing divs
+          ridingBreakdownDiv.selectAll("div").remove();
+          d3.select("#breakdown-title").attr("style", "display: block");
+
+          var breakdownTable = ridingBreakdownDiv
+              .selectAll("div")
+              .data(all_breakdowns)
+            .enter()
+              .append("div").attr('class','col-md-3 breakdown-cell')
+              .append("div").html(function(d,i) { 
+                return "<p><strong>Round " + (i+1) + "</strong><br>" + 
+                       "Votes needed to win: " + riding.properties.results.threshold + "<br>" +
+                       "<small>(hover over name for party)</small></p>";
+              })
+              .append("table").attr('class', 'table')
+          var breakdownTableHeader = breakdownTable.append("thead")
+              .append("tr")
+              .selectAll("th")
+              .data(breakdownColumns)
+            .enter()
+              .append("th")
+              .attr('class', function(d) { return d.cl; })
+              .text(function(d) { return d.head; });
+
+          var breakdownTableBody = breakdownTable.append("tbody")
+              .selectAll("tr")
+              .data(function(d) {
+                var filtered_pairs = _.filter( _.pairs(d), function(e) { return +e[1]>0; });
+                return _.sortBy( filtered_pairs, function(e) { return +e[1];} ).reverse();
+              })
+            .enter()
+              .append("tr")
+              .selectAll("td")
+              .data(function(d) {
+                return d;
+              })
+            .enter()
+              .append("td")
+              .html(function(d,i) { 
+                if(i==0) {
+                  var candidate_info = mapped_candidates[d];
+                  var colour = colours[candidate_info.political_affiliation] || "#000000";
+                  return "<span style='color:"+colour+"' title='" + candidate_info.political_affiliation + "'>" + candidate_info.name + "</span>";
+                } else {
+                  if(d > riding.properties.results.threshold) {
+                    return "<strong>" + d + "</strong>";
+                  } else {
+                    return d;
+                  }
+                }
+              });
+
+        }
+
+
+        function projectPoint(x, y) {
+          var point = map.latLngToLayerPoint(new L.LatLng(y, x));
+          this.stream.point(point.x, point.y);
+        }
+      }
+
+      queue()
+        .defer(d3.json, "/assets/electoral_districts.topojson")
+        .defer(d3.json, "/assets/irv_simulation.json")
+        .await(init);
+  </script>
+

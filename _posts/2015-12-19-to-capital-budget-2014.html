@@ -1,0 +1,38 @@
+---
+layout: post
+title: "City of Toronto 2014 Capital Budget"
+permalink: to-capital-budget-2014
+author: Richard Hydomako
+github: rhydomako
+tags: [Monte Carlo]
+---
+
+
+<script type="text/javascript" src="/js/jquery.min.js"></script>
+<script type="text/javascript" src="/js/jquery-ui.min.js"></script>
+<script type="text/javascript" src="/js/jquery.tsv-0.957.min.js"></script>
+
+<!-- Style & Font -->
+<link rel="stylesheet" type="text/css" href="/css/pivot.css">
+<script type="text/javascript" src="/js/pivot.js"></script>
+<p class='no-mathjax'>
+    This dataset shows the 2014 approved capital budget for the City of Toronto, as provided by <a href='http://www1.toronto.ca/wps/portal/contentonly?vgnextoid=7daf4d8e69770310VgnVCM1000003dd60f89RCRD'>Open Data Toronto</a>. Also included is the nine-year plan budget (2015-2023). The provided XLSX file was first converted to a Tab Separated Value (TSV) file (<a href='https://raw.githubusercontent.com/rhydomako/to-capital-budget-2014/master/static/capital_2014.tsv'>located here</a>), then the <a href='https://github.com/nicolaskruchten/pivottable'>Pivottable.js</a> library was used to generate the <a href='https://en.wikipedia.org/wiki/Pivot_table'>Pivot Table</a>. <a href='https://github.com/rhydomako/to-capital-budget-2014'>Source code for this code located here</a>. 
+</p>
+<p class='no-mathjax'>
+Please note that all values are given in units of $1,000 (for example, 10 = $10,000). Also note that the rows/columns can be drag/dropped to further drill down into the dataset.
+</p>
+<script type="text/javascript">
+    $(function(){
+        $.get("{{ .Site.BaseURL }}/assets/capital_2014.tsv", function(d) {
+            $("#output1").pivotUI( $.tsv.parseRows(d), {
+                rows: ["Ward Number", "Ward Name"],
+                cols: ["Year"],
+                aggregatorName: "Integer Sum",
+                vals: ["Budgeted"],
+                rendererName: "Heatmap"
+              }
+            );
+        });
+    });
+</script>
+<div id="output1"></div>

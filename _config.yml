@@ -1,0 +1,12 @@
+# Dependencies
+markdown:         redcarpet
+highlighter:         true
+
+# Permalinks
+permalink:        pretty
+
+# Setup
+title:            rhydomako.ca
+url:              http://rhydomako.ca
+author:
+  name:           Richard Hydomako

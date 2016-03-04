@@ -1,1 +1,1 @@
-rhydomako.ca blog powered by Nikola
+rhydomako.ca blog powered by Jekyll
