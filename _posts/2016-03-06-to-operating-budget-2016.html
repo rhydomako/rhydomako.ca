@@ -1,0 +1,152 @@
+---
+layout: post
+title: "City of Toronto 2016 Preliminary Operating Budget"
+permalink: /to-preliminary-operating-budget-2016/index.html
+---
+
+<link rel="stylesheet" type="text/css" href="/css/dc.css"/> 
+<link rel="stylesheet" type="text/css" href="/css/bootstrap.css"/>
+<script src="/js/jquery.min.js"></script>
+<script src="/js/bootstrap.js"></script>
+<script src="/js/d3.v3.min.js"></script> 
+<script src="/js/crossfilter.min.js"></script> 
+<script src="/js/dc.min.js"></script>
+<script src="/js/underscore.js"></script>
+
+<style>
+.dc-chart rect {
+    fill-opacity: 0.6;
+}
+.dc-chart path {
+    fill-opacity: 0.6;
+}
+.dc-chart g rect.bar {
+    fill-opacity: 0.6;
+}
+.im-centered { margin: auto; max-width: 300px;}
+.dc-chart g.axis text {
+    pointer-events: all;
+}
+</style>
+
+<div class='im-centered row'>
+    <div id="expenserevenuechart" class="dc-chart">
+        <strong>Total expenses/revenue:</strong>
+        <div class="clearfix"></div>
+    </div>
+</div>
+<div class='row'>
+    <div id="programchart" class="dc-chart">
+        <strong>By program:</strong>
+        <div class="clearfix"></div>
+    </div>
+</div>
+
+<script>
+var ProgramChart = dc.compositeChart("#programchart");
+var ExpenseRevenueChart = dc.pieChart("#expenserevenuechart");
+
+var formatCurrency = d3.format("$,.2f");
+
+d3.csv('/assets/2016_Recommend.csv', function (error, data) {
+    _.each(data, function(d){
+        d['2016'] = Math.abs(+d['2016']);
+    });
+    Plot(data);
+});
+
+function Plot(data) {
+    var ndx = crossfilter(data);
+
+    //dimensions
+    var programDimension = ndx.dimension( dc.pluck('Program') );
+    var expenseRevenueDimension = ndx.dimension( dc.pluck('Expense/Revenue') ); 
+
+    //groups
+    var programGroup = programDimension.group();
+    var expenseRevenueGroup = expenseRevenueDimension.group().reduceSum(
+        function(d) { return d['2016']; }
+    );
+    var expenseGroup = programDimension.group().reduceSum( function(d) {
+        if(d['Expense/Revenue'] == 'Expenses') {
+            return d['2016'];
+        } else {
+            return 0.;
+        }
+    });
+    var revenueGroup = programDimension.group().reduceSum( function(d) {
+        if(d['Expense/Revenue'] == 'Revenues') {
+            return d['2016'];
+        } else {
+            return 0.;
+        }
+    });
+
+    var programDomain = _.chain(data).pluck('Program').uniq().value();
+    var colorScale = d3.scale.ordinal().domain(["Expenses", "Revenues"])
+                                       .range(["red", "blue"]);
+
+    ProgramChart
+        .dimension(programDimension)
+        .width(700)
+        .height(400)
+        .x(d3.scale.ordinal().domain(programDomain))
+        .y(d3.scale.linear())
+        .xUnits(dc.units.ordinal)
+        .elasticY(true)
+        .renderHorizontalGridLines(true)
+        .shareTitle(false)
+        .legend(dc.legend().x(500).y(20).itemHeight(13).gap(5))
+        .margins({top: 10, right: 0, bottom: 200, left: 100})
+        .compose([
+            dc.barChart(ProgramChart)
+              .colors('red')
+              .group(expenseGroup, 'Expenses')
+              .title(function (p) {
+                return p.key + " expenses: " + formatCurrency(p.value);
+              }),
+            dc.barChart(ProgramChart)
+              .group(revenueGroup, 'Revenues')
+              .title(function (p) {
+                return p.key + " revenues: " + formatCurrency(p.value);
+              })
+        ])
+        .on("renderlet", function (chart) {
+               // rotate x-axis labels
+                  chart.selectAll('g.x text')
+                  .attr('transform', 'translate(-10,10) rotate(-90)')
+                  .attr('dy', '+0.2rem')
+                  .attr('dx', '-0.05rem')
+                  .style("text-anchor", "end")
+                  .on("click", hackyOnClick );
+              });
+
+    ExpenseRevenueChart
+        .dimension(expenseRevenueDimension)
+        .group(expenseRevenueGroup)
+        .width(200)
+        .height(200)
+        .innerRadius(30)
+        .colors(colorScale)
+        .title(function (p) {
+            return formatCurrency(p.value);
+        });
+
+    // hack to tie the responsiveness of the two-bar-charts together
+    hackyOnClick = function(datum) {
+        var filter
+        if(typeof(datum)=='string') {
+            filter = datum;
+        } else if(typeof(datum)=='object') {
+            filter = ProgramChart.keyAccessor()(datum);
+        }
+        dc.events.trigger(function () {
+            for (var i = 0; i < ProgramChart.children().length; ++i) { ProgramChart.children()[i].filter(filter); }
+            ProgramChart.redrawGroup();
+        });
+    };
+    for (var i = 0; i < ProgramChart.children().length; ++i) { ProgramChart.children()[i]['onClick'] = hackyOnClick; }
+
+    dc.renderAll();
+}
+</script>
