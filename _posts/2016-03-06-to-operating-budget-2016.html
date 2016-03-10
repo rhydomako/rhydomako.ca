@@ -4,8 +4,10 @@ title: "City of Toronto 2016 Preliminary Operating Budget"
 permalink: /to-preliminary-operating-budget-2016/index.html
 ---
 
-<link rel="stylesheet" type="text/css" href="/css/dc.css"/> 
 <link rel="stylesheet" type="text/css" href="/css/bootstrap.css"/>
+<link rel="stylesheet" type="text/css" href="/public/css/poole.css"/>
+<link rel="stylesheet" type="text/css" href="/public/css/lanyon.css"/>
+<link rel="stylesheet" type="text/css" href="/css/dc.css"/> 
 <script src="/js/jquery.min.js"></script>
 <script src="/js/bootstrap.js"></script>
 <script src="/js/d3.v3.min.js"></script> 
@@ -29,124 +31,148 @@ permalink: /to-preliminary-operating-budget-2016/index.html
 }
 </style>
 
+
 <div class='im-centered row'>
-    <div id="expenserevenuechart" class="dc-chart">
-        <strong>Total expenses/revenue:</strong>
+    <div id="expense-revenue-pie-chart" class="dc-chart">
+        <p style='margin-top:0px; margin-bottom:0px'><strong>Expenses:</strong><span style='margin-left:10px' id="expense-total"></span></p>
+        <p><strong>Revenues:</strong><span style='margin-left:10px' id="revenue-total"></span></p>
         <div class="clearfix"></div>
     </div>
 </div>
 <div class='row'>
-    <div id="programchart" class="dc-chart">
+    <div id="program-chart" class="dc-chart">
         <strong>By program:</strong>
+        <div class="clearfix"></div>
+    </div>
+</div>
+<div class='row'>
+    <div id="category-chart" class="dc-chart">
+        <strong>By category:</strong>
         <div class="clearfix"></div>
     </div>
 </div>
 
 <script>
-var ProgramChart = dc.compositeChart("#programchart");
-var ExpenseRevenueChart = dc.pieChart("#expenserevenuechart");
+    var ProgramChart = dc.compositeChart("#program-chart");
+    var CategoryChart = dc.compositeChart("#category-chart");
+    var ExpenseRevenueChart = dc.pieChart("#expense-revenue-pie-chart");
 
-var formatCurrency = d3.format("$,.2f");
+    var formatCurrency = d3.format("$,.2f");
 
-d3.csv('/assets/2016_Recommend.csv', function (error, data) {
-    _.each(data, function(d){
-        d['2016'] = Math.abs(+d['2016']);
-    });
-    Plot(data);
-});
-
-function Plot(data) {
-    var ndx = crossfilter(data);
-
-    //dimensions
-    var programDimension = ndx.dimension( dc.pluck('Program') );
-    var expenseRevenueDimension = ndx.dimension( dc.pluck('Expense/Revenue') ); 
-
-    //groups
-    var programGroup = programDimension.group();
-    var expenseRevenueGroup = expenseRevenueDimension.group().reduceSum(
-        function(d) { return d['2016']; }
-    );
-    var expenseGroup = programDimension.group().reduceSum( function(d) {
-        if(d['Expense/Revenue'] == 'Expenses') {
-            return d['2016'];
-        } else {
-            return 0.;
-        }
-    });
-    var revenueGroup = programDimension.group().reduceSum( function(d) {
-        if(d['Expense/Revenue'] == 'Revenues') {
-            return d['2016'];
-        } else {
-            return 0.;
-        }
-    });
-
-    var programDomain = _.chain(data).pluck('Program').uniq().value();
-    var colorScale = d3.scale.ordinal().domain(["Expenses", "Revenues"])
-                                       .range(["red", "blue"]);
-
-    ProgramChart
-        .dimension(programDimension)
-        .width(700)
-        .height(400)
-        .x(d3.scale.ordinal().domain(programDomain))
-        .y(d3.scale.linear())
-        .xUnits(dc.units.ordinal)
-        .elasticY(true)
-        .renderHorizontalGridLines(true)
-        .shareTitle(false)
-        .legend(dc.legend().x(500).y(20).itemHeight(13).gap(5))
-        .margins({top: 10, right: 0, bottom: 200, left: 100})
-        .compose([
-            dc.barChart(ProgramChart)
-              .colors('red')
-              .group(expenseGroup, 'Expenses')
-              .title(function (p) {
-                return p.key + " expenses: " + formatCurrency(p.value);
-              }),
-            dc.barChart(ProgramChart)
-              .group(revenueGroup, 'Revenues')
-              .title(function (p) {
-                return p.key + " revenues: " + formatCurrency(p.value);
-              })
-        ])
-        .on("renderlet", function (chart) {
-               // rotate x-axis labels
-                  chart.selectAll('g.x text')
-                  .attr('transform', 'translate(-10,10) rotate(-90)')
-                  .attr('dy', '+0.2rem')
-                  .attr('dx', '-0.05rem')
-                  .style("text-anchor", "end")
-                  .on("click", hackyOnClick );
-              });
-
-    ExpenseRevenueChart
-        .dimension(expenseRevenueDimension)
-        .group(expenseRevenueGroup)
-        .width(200)
-        .height(200)
-        .innerRadius(30)
-        .colors(colorScale)
-        .title(function (p) {
-            return formatCurrency(p.value);
+    d3.csv('/assets/2016_Recommend.csv', function (error, data) {
+        _.each(data, function(d){
+            d['2016'] = Math.abs(+d['2016']);
         });
+        Plot(data);
+    });
+
 
     // hack to tie the responsiveness of the two-bar-charts together
-    hackyOnClick = function(datum) {
-        var filter
-        if(typeof(datum)=='string') {
-            filter = datum;
-        } else if(typeof(datum)=='object') {
-            filter = ProgramChart.keyAccessor()(datum);
-        }
+    function textOnClick(chart, datum) {
+        var filter = datum;
         dc.events.trigger(function () {
-            for (var i = 0; i < ProgramChart.children().length; ++i) { ProgramChart.children()[i].filter(filter); }
-            ProgramChart.redrawGroup();
+            for (var i = 0; i < chart.children().length; ++i) { chart.children()[i].filter(filter); }
+            chart.redrawGroup();
         });
-    };
-    for (var i = 0; i < ProgramChart.children().length; ++i) { ProgramChart.children()[i]['onClick'] = hackyOnClick; }
+    }
 
-    dc.renderAll();
-}
+    function barOnClick(chart, datum) {
+        var filter = ProgramChart.keyAccessor()(datum);
+        dc.events.trigger(function () {
+            for (var i = 0; i < chart.children().length; ++i) { chart.children()[i].filter(filter); }
+            chart.redrawGroup();
+        });
+    }
+
+    function makeBarChart(data, ndx, column, chart) {
+        var dimension = ndx.dimension( dc.pluck(column) ); 
+        var expenseGroup = dimension.group().reduceSum( function(d) {
+            if(d['Expense/Revenue'] == 'Expenses') {
+                return d['2016'];
+            } else {
+                return 0.;
+            }
+        });
+        var revenueGroup = dimension.group().reduceSum( function(d) {
+            if(d['Expense/Revenue'] == 'Revenues') {
+                return d['2016'];
+            } else {
+                return 0.;
+            }
+        });
+    
+        var domain = _.chain(data).pluck(column).uniq().value();
+    
+        chart
+            .dimension(dimension)
+            .width(800)
+            .height(400)
+            .x(d3.scale.ordinal().domain(domain))
+            .y(d3.scale.linear())
+            .xUnits(dc.units.ordinal)
+            .elasticY(true)
+            .renderHorizontalGridLines(true)
+            .shareTitle(false)
+            .legend(dc.legend().x(500).y(20).itemHeight(13).gap(5))
+            .margins({top: 10, right: 0, bottom: 250, left: 100})
+            .compose([
+                dc.barChart(chart)
+                .colors('red')
+                .group(expenseGroup, 'Expenses')
+                .title(function (p) {
+                    return p.key + " expenses: " + formatCurrency(p.value);
+                }),
+                dc.barChart(chart)
+                    .group(revenueGroup, 'Revenues')
+                    .title(function (p) {
+                        return p.key + " revenues: " + formatCurrency(p.value);
+                    })
+                ])
+            .on("renderlet", function (c) {
+                // rotate x-axis labels
+                c.selectAll('g.x text')
+                    .attr('transform', 'translate(-10,10) rotate(-90)')
+                    .attr('dy', '+0.2rem')
+                    .attr('dx', '-0.05rem')
+                    .style("text-anchor", "end")
+                    .on("click", function(d) { return textOnClick(c,d); } );
+                });
+            
+        for (var i = 0; i < chart.children().length; ++i) { chart.children()[i]['onClick'] = function(d) { return barOnClick(chart, d); }; }
+    }
+
+    function Plot(data) {
+        var ndx = crossfilter(data);
+
+        makeBarChart(data, ndx, 'Category Name', CategoryChart);
+        makeBarChart(data, ndx, 'Program', ProgramChart);
+
+        //dimensions
+        var expenseRevenueDimension = ndx.dimension( dc.pluck('Expense/Revenue') ); 
+
+        //groups
+        var expenseRevenueGroup = expenseRevenueDimension.group().reduceSum(
+            function(d) { return d['2016']; }
+        );
+
+        var colorScale = d3.scale.ordinal().domain(["Expenses", "Revenues"])
+                                           .range(["red", "blue"]);
+              
+        ExpenseRevenueChart
+            .dimension(expenseRevenueDimension)
+            .group(expenseRevenueGroup)
+            .width(200)
+            .height(200)
+            .innerRadius(30)
+            .colors(colorScale)
+            .title(function (p) {
+                if (p.key=='Expenses') {
+                    d3.select('#expense-total').text(formatCurrency(p.value));
+                } else if (p.key=='Revenues') {
+                    d3.select('#revenue-total').text(formatCurrency(p.value)); 
+                }
+                return formatCurrency(p.value);
+            });
+        dc.renderAll();
+    }
 </script>
