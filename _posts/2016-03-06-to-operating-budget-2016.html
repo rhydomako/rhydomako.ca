@@ -8,12 +8,14 @@ permalink: /to-preliminary-operating-budget-2016/index.html
 <link rel="stylesheet" type="text/css" href="/public/css/poole.css"/>
 <link rel="stylesheet" type="text/css" href="/public/css/lanyon.css"/>
 <link rel="stylesheet" type="text/css" href="/css/dc.css"/> 
+<link rel="stylesheet" type="text/css" href="/css/jquery.dynatable.css"/> 
 <script src="/js/jquery.min.js"></script>
 <script src="/js/bootstrap.js"></script>
 <script src="/js/d3.v3.min.js"></script> 
 <script src="/js/crossfilter.min.js"></script> 
 <script src="/js/dc.min.js"></script>
 <script src="/js/underscore.js"></script>
+<script src="/js/jquery.dynatable.js"></script>
 
 <style>
 .dc-chart rect {
@@ -29,7 +31,14 @@ permalink: /to-preliminary-operating-budget-2016/index.html
 .dc-chart g.axis text {
     pointer-events: all;
 }
+.dc-table-label {
+    display: none;
+}
 </style>
+
+<p>
+Below is a visualization to explore the 2016 City of Toronto preliminary operating budget. Data is provided by <a href="http://www1.toronto.ca/wps/portal/contentonly?vgnextoid=96c98f90dba60310VgnVCM1000003dd60f89RCRD&vgnextchannel=1a66e03bb8d1e310VgnVCM10000071d60f89RCRD">Open Data Toronto</a> and source for the visualization can be found on <a href="https://github.com/rhydomako/rhydomako.ca/blob/master/_posts/2016-03-06-to-operating-budget-2016.html">Github</a>. The framework for the interactive visualization is <a href="http://dc-js.github.io/dc.js/">dc.js</a>, which makes great use of <a href="https://d3js.org/">d3.js</a> and <a href="http://square.github.io/crossfilter/">crossfilter.js</a>. The datatable functionality is provided by <a href="https://www.dynatable.com/">dynatable</a>. The charts are interactive, so try clicking on the bars and/or labels, while the data-table will reflect the selected dimensions.
+<p>
 
 
 <div class='im-centered row'>
@@ -51,17 +60,35 @@ permalink: /to-preliminary-operating-budget-2016/index.html
         <div class="clearfix"></div>
     </div>
 </div>
+<div class='row'>
+    <table id="lineitem-table">
+        <thead>
+            <tr>
+                <th data-dynatable-column="Program">Program</th>
+                <th data-dynatable-column="Service">Service</th>
+                <th data-dynatable-column="Activity">Activity</th>
+                <th data-dynatable-column="Category Name">Category Name</th>
+                <th data-dynatable-column="Expense/Revenue">Expense/Revenue</th>
+                <th data-dynatable-column="Value">Value</th>
+            </tr>
+        </thead>
+    </table>
+</div>
+
 
 <script>
+    var ndx;
     var ProgramChart = dc.compositeChart("#program-chart");
     var CategoryChart = dc.compositeChart("#category-chart");
     var ExpenseRevenueChart = dc.pieChart("#expense-revenue-pie-chart");
+    var LineItemTable = dc.dataTable("#lineitem-table");
 
     var formatCurrency = d3.format("$,.2f");
 
     d3.csv('/assets/2016_Recommend.csv', function (error, data) {
         _.each(data, function(d){
             d['2016'] = Math.abs(+d['2016']);
+            d['Value'] = formatCurrency(+d['2016']);
         });
         Plot(data);
     });
@@ -142,12 +169,13 @@ permalink: /to-preliminary-operating-budget-2016/index.html
     }
 
     function Plot(data) {
-        var ndx = crossfilter(data);
+        ndx = crossfilter(data);
 
         makeBarChart(data, ndx, 'Category Name', CategoryChart);
         makeBarChart(data, ndx, 'Program', ProgramChart);
 
         //dimensions
+        var spendDimension = ndx.dimension( dc.pluck('2016') );
         var expenseRevenueDimension = ndx.dimension( dc.pluck('Expense/Revenue') ); 
 
         //groups
@@ -173,6 +201,37 @@ permalink: /to-preliminary-operating-budget-2016/index.html
                 }
                 return formatCurrency(p.value);
             });
+
+        LineItemTable
+            .dimension(spendDimension)
+            .group( function(d) { return d['Program']; })
+            .size(Infinity)
+            .columns(['Program','Service','Activity','Category Name','Expense/Revenue','Value'])
+            .on("renderlet", RefreshTable );
+
+        var dynatable = $('#lineitem-table').dynatable({
+            features: {
+                pushState: false,
+                sort: true
+            },
+            dataset: {
+                records: spendDimension.top(Infinity),
+                sorts: { 'Program': 1 },
+                perPageDefault: 10,
+                perPageOptions: [10, 20,50, 100, 200, 500]
+            }
+        }).data('dynatable');
+        
+        function RefreshTable() {
+            dc.events.trigger(function () {
+                dynatable.settings.dataset.originalRecords = spendDimension.top(Infinity);
+                dynatable.process();
+            });
+        };
+
         dc.renderAll();
+        RefreshTable();
     }
+
+    
 </script>
