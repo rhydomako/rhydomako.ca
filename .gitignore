@@ -1,5 +1,3 @@
-*.pyc
-.doit.db.db
-cache/
-posts/.ipynb_checkpoints/
-output/
+_site/
+.sass-cache/
+.jekyll-metadata
