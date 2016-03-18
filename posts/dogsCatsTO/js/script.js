@@ -28,11 +28,11 @@ var tip = d3.tip()
     .attr('class', 'd3-tip')
     .offset([-5, 0])
     .html(function(d) {
-              return "<strong>First three digits of Postal Code:</strong> <span style='color:red'>" + d.id + "</span></br> \
-                      <strong>Number of registered cats:</strong> <span style='color:red'>" + d.properties['CAT'] + " ("+ d.properties['cat_pct'] +"%)</span><br> \
-                      <strong>Number of registered dogs:</strong> <span style='color:red'>" + d.properties['DOG'] + " ("+ d.properties['dog_pct'] +"%)</span><br> \
-                      <strong>Total number of animals:</strong> <span style='color:red'>" + d.properties['Total'] + "</span><br> \
-                      <strong>Total number of animals per 1000 residents:</strong> <span style='color:red'>" + (d.properties['Total']/(d.properties['Population']/1000.)).toFixed(1) + "</span>";
+              return "<span class='tip-left'>First three digits of Postal Code:</span> <span class='tip-right'>" + d.id + "</span></br> \
+                      <span class='tip-left'>Number of registered cats:</span> <span class='tip-right'>" + d.properties['CAT'] + " ("+ d.properties['cat_pct'] +"%)</span><br> \
+                      <span class='tip-left'>Number of registered dogs:</span> <span class='tip-right'>" + d.properties['DOG'] + " ("+ d.properties['dog_pct'] +"%)</span><br> \
+                      <span class='tip-left'>Total number of animals:</span> <span class='tip-right'>" + d.properties['Total'] + "</span><br> \
+                      <span class='tip-left'>Total number of animals per 1000 residents:</span> <span class='tip-right'>" + (d.properties['Total']/(d.properties['Population']/1000.)).toFixed(1) + "</span>";
     });
 svg.call(tip);
 

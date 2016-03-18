@@ -16,6 +16,13 @@ strong {
     color: #fff;
 }
 
+.tip-left {
+    color:white;
+}
+.tip-right {
+    color:#fee8c8; 
+}
+
 .d3-tip {
     line-height: 1;
     font-weight: bold;
