@@ -1,3 +1,5 @@
+## Description
+
 Currently, the winner of an election in the Canadian system is determined through a system called [First Past the Post](https://en.wikipedia.org/wiki/First-past-the-post_voting) (FPTP), wherein whichever candidate that receives the plurality of votes is declared the winner. Although FPTH is easy to understand and interprete, in a multi-party system it often faces the criticism that candidates can be elected without carrying the majority of votes and this can contribute to many voters feeling that their votes were 'wasted' since in no way did their votes contribute to the election of their representative. For example, in the 2011 Canadian general election, a grand total of 14873962 valid votes were cast, and 7495961 of those votes were for the ultimately elected candidates. This means that for 50% of the voters, their political choice was not represented in the final outcome.
 
 There are many alternate voting systems that mitigate these concerns, such as [Proportional Representation](https://en.wikipedia.org/wiki/Proportional_representation) systems like [Single transferable vote](https://en.wikipedia.org/wiki/Single_transferable_vote). For single-winner elections, the Single transferable vote systems is known as [Instant-runoff voting](https://en.wikipedia.org/wiki/Instant-runoff_voting). In this system, each voter ranks the candidates in order of preference. The vote counting is then conducted in rounds: for each round that none of the candidates receives a majority of votes, the candidate with the fewest vote is taken off the list and their votes are redistruted according to the stated preference of those voters.
@@ -6,9 +8,11 @@ To see what the 2011 Canadian general election might've looked like under the In
 
 Open Source libraries used: [jquery.js](https://jquery.com/), [underscore.js](http://underscorejs.org/), [leaflet.js](http://leafletjs.com/), [queue.js](https://github.com/d3/d3-queue), [d3.js](https://d3js.org/), [d3.tip.js](https://github.com/Caged/d3-tip), [topojson.js](https://github.com/mbostock/topojson), [pandas](http://pandas.pydata.org/). Full source on [Github](https://github.com/rhydomako/rhydomako.ca/master/posts/irvSimulation2011/).
 
+## Operation
+
 To generate the electoral districts:
 ```
 make
 ```
 
-The creation of the election results database, analysis and simulation are included in the [notebook]().
+The creation of the election results database, analysis and simulation are included in the [notebook](https://github.com/rhydomako/rhydomako.ca/blob/master/posts/irvSimulation2011/notebooks/create_database.ipynb).
