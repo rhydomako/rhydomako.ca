@@ -1,0 +1,16 @@
+.dc-chart rect {
+    fill-opacity: 0.6;
+}
+.dc-chart path {
+    fill-opacity: 0.6;
+}
+.dc-chart g rect.bar {
+    fill-opacity: 0.6;
+}
+.im-centered { margin: auto; max-width: 300px;}
+.dc-chart g.axis text {
+    pointer-events: all;
+}
+.dc-table-label {
+    display: none;
+}
