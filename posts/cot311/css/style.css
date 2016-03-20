@@ -1,0 +1,98 @@
+path { 
+  fill: #777;
+  fill-opacity: 0.5;
+  stroke: #999;
+  stroke-width: 0.5;
+}
+path:hover {
+  fill: #00f;
+  fill-opacity: 0.8;
+}
+
+.fsa-label {
+  fill: #000;
+  font-size: 12px;
+  font-weight: 300;
+  text-anchor: middle;
+}
+.d3-tip {
+  line-height: 1;
+  font-weight: bold;
+  padding: 12px;
+  background: rgba(0.8, 0.8, 0.8, 0.8);
+  color: #fff;
+  border-radius: 2px;
+}
+
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+  box-sizing: border-box;
+  display: inline;
+  font-size: 10px;
+  width: 100%;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.8);
+  content: "\25BC";
+  position: absolute;
+  text-align: center;
+}
+
+/* Style northward tooltips differently */
+.d3-tip.n:after {
+  margin: -1px 0 0 0;
+  top: 100%;
+  left: 0;
+}
+
+#map-container {
+  width: 1200px;
+  height: 500px;
+}
+
+#map {
+  display: inline-block;
+  width: 700px;
+  height: 500px;
+}
+
+#types {
+  display: inline-block;
+  width: 400px;
+  height: 500px;
+}
+
+ul{ 
+  width: 400px;
+  height: 500px;
+  overflow:hidden; 
+  overflow-y:scroll;
+}
+
+li:hover{
+  color: #00f;
+}
+::-webkit-scrollbar {
+    -webkit-appearance: none;
+    width: 7px;
+}
+::-webkit-scrollbar-thumb {
+    border-radius: 4px;
+    background-color: rgba(0,0,0,.5);
+    -webkit-box-shadow: 0 0 1px rgba(255,255,255,.5);
+}
+
+.legend {
+  display: inline-block;
+  width: 200px;
+  height: 40px;
+}
+#colorLegend .colorlegend-labels {
+  font-size: 9px;
+  fill: #888;
+}
+
+#scaleButtons {
+  width: 300px;
+  display: inline-block;
+}
+
