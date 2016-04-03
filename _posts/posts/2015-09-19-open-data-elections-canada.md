@@ -3,6 +3,7 @@ layout: post
 title:  "Instant-runoff voting simulation for 2011 Canadian election"
 permalink: /elections-canada-irv/index.html
 date:   2015-09-19 19:15:34
+category: post
 ---
 
 <link href="/posts/irvSimulation2011/css/leaflet.css" rel="stylesheet" />

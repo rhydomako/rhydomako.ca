@@ -3,19 +3,6 @@ layout: default
 ---
 
 <div class="posts">
-    <h2>Posts</h2>
-    {% for post in site.posts %}
-    {% if post.category contains 'post' %}
-    <h3 class="post-title">
-        <a href="{{ post.url }}">
-            {{ post.title }}
-        </a>
-    </h1>
-    {% endif %}
-    {% endfor %}
-</div>
-
-<div class="posts">
     <h2>TILs</h2>
     {% for post in site.posts %}
     {% if post.category contains 'tils' %}

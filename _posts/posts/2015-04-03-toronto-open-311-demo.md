@@ -3,6 +3,7 @@ layout: post
 title:  "Toronto 311 service call visualization"
 permalink: /311/index.html
 date:   2015-04-03 23:10:34
+category: post
 ---
 
 <link rel="stylesheet" href="/posts/cot311/css/leaflet.css" />
