@@ -4,6 +4,7 @@ title: "Toronto Wellbeing Cartogram"
 permalink: /wellbeing/index.html
 author: Richard Hydomako
 date: 2015-05-20 12:00:00
+category: post
 ---
     
 Data from [Wellbeing Toronto](http://toronto.ca/wellbeing). Cartogram library from [Cartogram.js](https://github.com/shawnbot/d3-cartogram/)
