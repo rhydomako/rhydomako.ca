@@ -1,0 +1,234 @@
+---
+layout: post
+title: Bayesnet example using Pomegranate
+date: 2016-04-07 22:00:00
+permalink: /tils/pomegranate-bayesnet/index.html
+category: tils
+---
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Example taken from Coursera's <code>Probabilistic Graphical Models</code>, taught by Prof. Daphne Koller (<a href="https://class.coursera.org/pgm/">https://class.coursera.org/pgm/</a>)</p>
+<p>Pomegranate library: <a href="https://github.com/jmschrei/pomegranate">https://github.com/jmschrei/pomegranate</a></p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[1]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="kn">import</span> <span class="nn">pomegranate</span> <span class="kn">as</span> <span class="nn">pom</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[2]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="n">difficulty</span> <span class="o">=</span> <span class="n">pom</span><span class="o">.</span><span class="n">DiscreteDistribution</span><span class="p">({</span> <span class="s">&#39;hard&#39;</span><span class="p">:</span><span class="mf">0.6</span><span class="p">,</span> <span class="s">&#39;easy&#39;</span><span class="p">:</span><span class="mf">0.4</span> <span class="p">})</span>
+<span class="n">intelligence</span> <span class="o">=</span> <span class="n">pom</span><span class="o">.</span><span class="n">DiscreteDistribution</span><span class="p">({</span> <span class="s">&#39;intelligent&#39;</span><span class="p">:</span><span class="mf">0.7</span><span class="p">,</span> <span class="s">&#39;not-intelligent&#39;</span><span class="p">:</span><span class="mf">0.3</span> <span class="p">})</span>
+<span class="n">grade</span> <span class="o">=</span> <span class="n">pom</span><span class="o">.</span><span class="n">ConditionalProbabilityTable</span><span class="p">(</span>
+    <span class="p">[[</span><span class="s">&#39;hard&#39;</span><span class="p">,</span> <span class="s">&#39;intelligent&#39;</span><span class="p">,</span> <span class="s">&#39;A&#39;</span><span class="p">,</span> <span class="mf">0.3</span> <span class="p">],</span>
+     <span class="p">[</span><span class="s">&#39;hard&#39;</span><span class="p">,</span> <span class="s">&#39;intelligent&#39;</span><span class="p">,</span> <span class="s">&#39;B&#39;</span><span class="p">,</span> <span class="mf">0.4</span> <span class="p">],</span>
+     <span class="p">[</span><span class="s">&#39;hard&#39;</span><span class="p">,</span> <span class="s">&#39;intelligent&#39;</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">,</span> <span class="mf">0.3</span> <span class="p">],</span>
+     <span class="p">[</span><span class="s">&#39;hard&#39;</span><span class="p">,</span> <span class="s">&#39;not-intelligent&#39;</span><span class="p">,</span> <span class="s">&#39;A&#39;</span><span class="p">,</span> <span class="mf">0.05</span> <span class="p">],</span>
+     <span class="p">[</span><span class="s">&#39;hard&#39;</span><span class="p">,</span> <span class="s">&#39;not-intelligent&#39;</span><span class="p">,</span> <span class="s">&#39;B&#39;</span><span class="p">,</span> <span class="mf">0.25</span> <span class="p">],</span>
+     <span class="p">[</span><span class="s">&#39;hard&#39;</span><span class="p">,</span> <span class="s">&#39;not-intelligent&#39;</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">,</span> <span class="mf">0.7</span> <span class="p">],</span>
+     <span class="p">[</span><span class="s">&#39;easy&#39;</span><span class="p">,</span> <span class="s">&#39;intelligent&#39;</span><span class="p">,</span> <span class="s">&#39;A&#39;</span><span class="p">,</span> <span class="mf">0.9</span> <span class="p">],</span>
+     <span class="p">[</span><span class="s">&#39;easy&#39;</span><span class="p">,</span> <span class="s">&#39;intelligent&#39;</span><span class="p">,</span> <span class="s">&#39;B&#39;</span><span class="p">,</span> <span class="mf">0.08</span> <span class="p">],</span>
+     <span class="p">[</span><span class="s">&#39;easy&#39;</span><span class="p">,</span> <span class="s">&#39;intelligent&#39;</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">,</span> <span class="mf">0.02</span> <span class="p">],</span>
+     <span class="p">[</span><span class="s">&#39;easy&#39;</span><span class="p">,</span> <span class="s">&#39;not-intelligent&#39;</span><span class="p">,</span> <span class="s">&#39;A&#39;</span><span class="p">,</span> <span class="mf">0.5</span> <span class="p">],</span>
+     <span class="p">[</span><span class="s">&#39;easy&#39;</span><span class="p">,</span> <span class="s">&#39;not-intelligent&#39;</span><span class="p">,</span> <span class="s">&#39;B&#39;</span><span class="p">,</span> <span class="mf">0.3</span> <span class="p">],</span>
+     <span class="p">[</span><span class="s">&#39;easy&#39;</span><span class="p">,</span> <span class="s">&#39;not-intelligent&#39;</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">,</span> <span class="mf">0.2</span> <span class="p">],</span>
+    <span class="p">],</span>
+    <span class="p">[</span><span class="n">difficulty</span><span class="p">,</span> <span class="n">intelligence</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">sat</span> <span class="o">=</span> <span class="n">pom</span><span class="o">.</span><span class="n">ConditionalProbabilityTable</span><span class="p">(</span>
+    <span class="p">[[</span><span class="s">&#39;intelligent&#39;</span><span class="p">,</span> <span class="s">&#39;high-mark&#39;</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">],</span>
+     <span class="p">[</span><span class="s">&#39;intelligent&#39;</span><span class="p">,</span> <span class="s">&#39;low-mark&#39;</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">],</span>
+     <span class="p">[</span><span class="s">&#39;not-intelligent&#39;</span><span class="p">,</span> <span class="s">&#39;high-mark&#39;</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">],</span>
+     <span class="p">[</span><span class="s">&#39;not-intelligent&#39;</span><span class="p">,</span> <span class="s">&#39;low-mark&#39;</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">]</span>
+    <span class="p">],</span>
+    <span class="p">[</span><span class="n">intelligence</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">letter</span> <span class="o">=</span> <span class="n">pom</span><span class="o">.</span><span class="n">ConditionalProbabilityTable</span><span class="p">(</span>
+    <span class="p">[[</span><span class="s">&#39;A&#39;</span><span class="p">,</span> <span class="s">&#39;reference-letter&#39;</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">],</span>
+     <span class="p">[</span><span class="s">&#39;B&#39;</span><span class="p">,</span> <span class="s">&#39;reference-letter&#39;</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">],</span>
+     <span class="p">[</span><span class="s">&#39;C&#39;</span><span class="p">,</span> <span class="s">&#39;reference-letter&#39;</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">],</span>
+     <span class="p">[</span><span class="s">&#39;A&#39;</span><span class="p">,</span> <span class="s">&#39;no-reference-letter&#39;</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">],</span>
+     <span class="p">[</span><span class="s">&#39;B&#39;</span><span class="p">,</span> <span class="s">&#39;no-reference-letter&#39;</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">],</span>
+     <span class="p">[</span><span class="s">&#39;C&#39;</span><span class="p">,</span> <span class="s">&#39;no-reference-letter&#39;</span><span class="p">,</span> <span class="mf">0.99</span><span class="p">]</span>
+    <span class="p">],</span>
+    <span class="p">[</span><span class="n">grade</span><span class="p">]</span>
+<span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[3]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="n">d</span> <span class="o">=</span> <span class="n">pom</span><span class="o">.</span><span class="n">State</span><span class="p">(</span><span class="n">difficulty</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&quot;difficulty&quot;</span><span class="p">)</span>
+<span class="n">i</span> <span class="o">=</span> <span class="n">pom</span><span class="o">.</span><span class="n">State</span><span class="p">(</span><span class="n">intelligence</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&quot;intelligence&quot;</span><span class="p">)</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">pom</span><span class="o">.</span><span class="n">State</span><span class="p">(</span><span class="n">grade</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&quot;grade&quot;</span><span class="p">)</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">pom</span><span class="o">.</span><span class="n">State</span><span class="p">(</span><span class="n">sat</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&quot;sat&quot;</span><span class="p">)</span>
+<span class="n">l</span> <span class="o">=</span> <span class="n">pom</span><span class="o">.</span><span class="n">State</span><span class="p">(</span><span class="n">letter</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&quot;letter&quot;</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[4]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="n">network</span> <span class="o">=</span> <span class="n">pom</span><span class="o">.</span><span class="n">BayesianNetwork</span><span class="p">(</span> <span class="s">&quot;student&quot;</span> <span class="p">)</span>
+<span class="n">network</span><span class="o">.</span><span class="n">add_states</span><span class="p">(</span> <span class="p">[</span> <span class="n">d</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">l</span> <span class="p">]</span> <span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[5]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="n">network</span><span class="o">.</span><span class="n">add_transition</span><span class="p">(</span> <span class="n">d</span><span class="p">,</span> <span class="n">g</span> <span class="p">)</span>
+<span class="n">network</span><span class="o">.</span><span class="n">add_transition</span><span class="p">(</span> <span class="n">i</span><span class="p">,</span> <span class="n">g</span> <span class="p">)</span>
+<span class="n">network</span><span class="o">.</span><span class="n">add_transition</span><span class="p">(</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="p">)</span>
+<span class="n">network</span><span class="o">.</span><span class="n">add_transition</span><span class="p">(</span> <span class="n">g</span><span class="p">,</span> <span class="n">l</span> <span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[6]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="n">network</span><span class="o">.</span><span class="n">bake</span><span class="p">()</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Observe how the probabilites are effected by observing various outcomes:</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[7]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="n">observations</span> <span class="o">=</span> <span class="p">{</span> <span class="s">&#39;difficulty&#39;</span><span class="p">:</span> <span class="s">&#39;hard&#39;</span><span class="p">,</span> <span class="s">&#39;sat&#39;</span><span class="p">:</span><span class="s">&#39;high-mark&#39;</span> <span class="p">}</span>
+<span class="n">beliefs</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span> <span class="nb">str</span><span class="p">,</span> <span class="n">network</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span> <span class="n">observations</span> <span class="p">)</span> <span class="p">)</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="s">&quot;{}</span><span class="se">\t</span><span class="s">{}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span> <span class="n">state</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">belief</span> <span class="p">)</span> <span class="k">for</span> <span class="n">state</span><span class="p">,</span> <span class="n">belief</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span> <span class="n">network</span><span class="o">.</span><span class="n">states</span><span class="p">,</span> <span class="n">beliefs</span> <span class="p">)</span> <span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt"></div>
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>difficulty	{
+    &quot;frozen&quot; :false,
+    &quot;class&quot; :&quot;Distribution&quot;,
+    &quot;parameters&quot; :[
+        {
+            &quot;hard&quot; :1.0,
+            &quot;easy&quot; :0.0
+        }
+    ],
+    &quot;name&quot; :&quot;DiscreteDistribution&quot;
+}
+intelligence	{
+    &quot;frozen&quot; :false,
+    &quot;class&quot; :&quot;Distribution&quot;,
+    &quot;parameters&quot; :[
+        {
+            &quot;intelligent&quot; :0.9172413793103448,
+            &quot;not-intelligent&quot; :0.0827586206896552
+        }
+    ],
+    &quot;name&quot; :&quot;DiscreteDistribution&quot;
+}
+grade	{
+    &quot;frozen&quot; :false,
+    &quot;class&quot; :&quot;Distribution&quot;,
+    &quot;parameters&quot; :[
+        {
+            &quot;A&quot; :0.2793103448275863,
+            &quot;C&quot; :0.3331034482758622,
+            &quot;B&quot; :0.38758620689655154
+        }
+    ],
+    &quot;name&quot; :&quot;DiscreteDistribution&quot;
+}
+sat	{
+    &quot;frozen&quot; :false,
+    &quot;class&quot; :&quot;Distribution&quot;,
+    &quot;parameters&quot; :[
+        {
+            &quot;low-mark&quot; :0.0,
+            &quot;high-mark&quot; :1.0
+        }
+    ],
+    &quot;name&quot; :&quot;DiscreteDistribution&quot;
+}
+letter	{
+    &quot;frozen&quot; :false,
+    &quot;class&quot; :&quot;Distribution&quot;,
+    &quot;parameters&quot; :[
+        {
+            &quot;reference-letter&quot; :0.4872620689655171,
+            &quot;no-reference-letter&quot; :0.512737931034483
+        }
+    ],
+    &quot;name&quot; :&quot;DiscreteDistribution&quot;
+}
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
