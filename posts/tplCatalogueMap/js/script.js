@@ -40,9 +40,15 @@ var y = d3.scale.linear()
     .domain([-0.8,0.8])
     .range([height, 0]);
 
+var voronoi = d3.geom.voronoi()
+    .x(function(d) { return x(d.x); })
+    .y(function(d) { return y(d.y); })
+    .clipExtent([[-margin.left, -margin.top], [width + margin.right, height + margin.bottom]]);
+
 var tip = d3.tip()
     .attr('class', 'd3-tip')
-    .offset([-5, 0])
+    .offset(function(d) { return [y(d.y) - this.getBBox().y - 15, x(d.x) - this.getBBox().x - 0.5*this.getBBox().width]; })
+   // .offset(function(d) { console.log(this.getBBox()); return [(this.getBBox().y - y(d.y)), (this.getBBox().x - x(d.x))]; })
     .html(function(d) {
         return d.subject;
     });
@@ -55,7 +61,8 @@ d3.json("/posts/tplCatalogueMap/data/subjects_isomap.json", function(error,data)
         d.x = +d.x;
         d.y = +d.y;
     });
-
+  
+ 
     var circle = container.append('g')
         .attr("class", "dot")
         .selectAll("dots")
@@ -67,9 +74,20 @@ d3.json("/posts/tplCatalogueMap/data/subjects_isomap.json", function(error,data)
         .attr("cx", function(d) { return x(d.x); })
         .attr("cy", function(d) { return y(d.y); })
         .attr("r", 3)
-        .style("fill", function(d) { return d.clusterColor; })
+        .style("fill", function(d) { return d.clusterColor; });
+   
+
+    var voronoiGroup = container.append("g")
+      	.attr("class", "voronoi")
+    	.selectAll("path")
+      	.data(voronoi(data))
+    	.enter()
+	.append("path")
+      	.attr("d", function(d) { return "M" + d.join("L") + "Z"; })
+	.datum(function(d) { return d.point; })
         .on('mouseover', tip.show)
         .on('mouseout', tip.hide);
+
 
     var annotationLayer = container.append('g')
         .attr("class", "annotations")
@@ -79,8 +97,13 @@ d3.json("/posts/tplCatalogueMap/data/subjects_isomap.json", function(error,data)
         .attr("x", function(d) { return d.xVal; })
         .attr("y", function(d) { return d.yVal; })
         .text( function (d) { return d.text; });
+
 });
 
 function zoomed() {
     container.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+}
+
+function polygon(d) {
+  return "M" + d.join("L") + "Z";
 }

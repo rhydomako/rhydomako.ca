@@ -1,3 +1,10 @@
+path {
+  stroke: none;
+  fill: none;
+  stroke-opacity: .2;
+  pointer-events: all;
+}
+
 circle {
     fill: lightsteelblue;
     #fill-opacity: 0.6;
