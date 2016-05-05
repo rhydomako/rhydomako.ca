@@ -25,12 +25,6 @@ var svg = d3.select("#viz").append("svg")
     .attr("transform", "translate(" + margin.left + "," + margin.right + ")")
     .call(zoom);
 
-var rect = svg.append("rect")
-    .attr("width", width)
-    .attr("height", height)
-    .style("fill", "none")
-    .style("pointer-events", "all");
-
 var container = svg.append("g");
 
 var x = d3.scale.linear()
@@ -48,12 +42,10 @@ var voronoi = d3.geom.voronoi()
 var tip = d3.tip()
     .attr('class', 'd3-tip')
     .offset(function(d) { return [y(d.y) - this.getBBox().y - 15, x(d.x) - this.getBBox().x - 0.5*this.getBBox().width]; })
-   // .offset(function(d) { console.log(this.getBBox()); return [(this.getBBox().y - y(d.y)), (this.getBBox().x - x(d.x))]; })
     .html(function(d) {
         return d.subject;
     });
 svg.call(tip);
-
 
 d3.json("/posts/tplCatalogueMap/data/subjects_isomap.json", function(error,data) {
 
@@ -61,33 +53,17 @@ d3.json("/posts/tplCatalogueMap/data/subjects_isomap.json", function(error,data)
         d.x = +d.x;
         d.y = +d.y;
     });
-  
- 
+
     var circle = container.append('g')
         .attr("class", "dot")
         .selectAll("dots")
         .data(data)
 	.enter()
-	.append('a')
-	.attr("xlink:href", function(d) {return "http://www.torontopubliclibrary.ca/search.jsp?Ntt=" + d.subject})
         .append("circle")
         .attr("cx", function(d) { return x(d.x); })
         .attr("cy", function(d) { return y(d.y); })
         .attr("r", 3)
-        .style("fill", function(d) { return d.clusterColor; });
-   
-
-    var voronoiGroup = container.append("g")
-      	.attr("class", "voronoi")
-    	.selectAll("path")
-      	.data(voronoi(data))
-    	.enter()
-	.append("path")
-      	.attr("d", function(d) { return "M" + d.join("L") + "Z"; })
-	.datum(function(d) { return d.point; })
-        .on('mouseover', tip.show)
-        .on('mouseout', tip.hide);
-
+        .style("fill", function(d) { return d.clusterColor; }); 
 
     var annotationLayer = container.append('g')
         .attr("class", "annotations")
@@ -98,12 +74,20 @@ d3.json("/posts/tplCatalogueMap/data/subjects_isomap.json", function(error,data)
         .attr("y", function(d) { return d.yVal; })
         .text( function (d) { return d.text; });
 
+    var voronoiGroup = container.append("g")
+      	.attr("class", "voronoi")
+    	.selectAll("path")
+      	.data(voronoi(data))
+    	.enter()
+	.append('a')
+	.attr("xlink:href", function(d) {return "http://www.torontopubliclibrary.ca/search.jsp?Ntt=" + d.point.subject})
+	.append("path")
+      	.attr("d", function(d) { return "M" + d.join("L") + "Z"; })
+	.datum(function(d) { return d.point; })
+        .on('mouseover', tip.show)
+        .on('mouseout', tip.hide);
 });
 
 function zoomed() {
     container.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
-}
-
-function polygon(d) {
-  return "M" + d.join("L") + "Z";
 }
