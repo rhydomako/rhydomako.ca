@@ -27,7 +27,7 @@ var distance = function(a, b) {
 var tree;
 var network, networkEdges;
 
-var map = L.map('viz', {zoomControl: false}).setView([settings.mapCentreLat, settings.mapCentreLong], settings.mapZoom);
+var map = L.map('viz', {zoomControl: true}).setView([settings.mapCentreLat, settings.mapCentreLong], settings.mapZoom);
 map.on("viewreset", resetView);
 map.spin(true);
 
