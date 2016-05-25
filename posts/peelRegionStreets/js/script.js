@@ -56,6 +56,16 @@ var pathsGeoJson, feature;
 var transform = d3.geo.transform({point: projectPoint}),
     path = d3.geo.path().projection(transform);
 
+function drawPaths(featureArray) {
+   pathsGeoJson = { "type": "FeatureCollection", "features":featureArray };
+   
+   feature = g.selectAll('path')
+        .data(pathsGeoJson.features)
+      .enter()
+        .append("path")
+        .attr("d", path);
+   resetView();
+}
 
 function resetView() {
     var bounds = path.bounds(pathsGeoJson),
@@ -94,24 +104,39 @@ function start(error, _network, _networkEdges) {
     var spokeR = 0.07;
     var spokeR2 = spokeR*0.2;
 
-    var firstSpokes = [];
+    var nodePairs = [];
     for(var i=0; i<nSpokes; i++) {
         var theta = i*angleBetweenSpokes + angleOffset;
         var lat = centreLat + spokeR*Math.sin(theta);
         var lon = centreLon + spokeR*Math.cos(theta);
         var spoke = tree.nearest({"lon":lon, "lat":lat},2);
-	firstSpokes.push(featurePath(centre[0][0], spoke[0][0]));
+	nodePairs.push([centre[0][0], spoke[0][0]]);
 
 	for(var j=0; j<nSpokes; j++) {
 	   var theta2 = j*angleBetweenSpokes;
 	   var lat2 = lat + spokeR2*Math.sin(theta2);
 	   var lon2 = lon + spokeR2*Math.cos(theta2);
 	   var spoke2 = tree.nearest({"lon":lon2, "lat":lat2},2);
-	   firstSpokes.push(featurePath(spoke[0][0], spoke2[0][0]));
+	   nodePairs.push([spoke[0][0], spoke2[0][0]]);
 	}
     }
-    pathsGeoJson = { "type": "FeatureCollection", "features":firstSpokes };
 
+    var featureArray = [];
+    function processPaths(pairs, i) {
+       if(i == undefined) {
+	  i = 0;
+       }
+       if(i < pairs.length) {
+	 var nextBitOfWork = function() {
+	   featureArray.push( featurePath(nodePairs[i][0], nodePairs[i][1]) );
+           processPaths(pairs, i+1);
+         }
+         setTimeout(nextBitOfWork, 50);
+       } else {
+         drawPaths(featureArray);
+       }
+    }
+    processPaths(nodePairs, 0);
 
     function featurePath(nodeA, nodeB) {
     	var aPath = graph.findShortestPath(nodeA.node,nodeB.node);
@@ -150,13 +175,8 @@ function start(error, _network, _networkEdges) {
         }
 	return featureObject;
    }
-
-   feature = g.selectAll('path')
-        .data(pathsGeoJson.features)
-      .enter()
-        .append("path")
-        .attr("d", path);
-   resetView();
+/*
+*/
 }
 
 queue()
