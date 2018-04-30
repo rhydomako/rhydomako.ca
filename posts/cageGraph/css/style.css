@@ -1,0 +1,26 @@
+.axis path, .axis line {
+    fill: none;
+    stroke: black;
+    shape-rendering: crispEdges;
+}
+
+circle {
+    r: 5;
+    fill: grey;
+    fill-opacity: 0.5;
+}
+
+.voronoi path {
+  fill: none;
+  pointer-events: all;
+}
+
+div.tooltip {   
+    position: absolute;         
+    padding: 10px;               
+    font: 12px sans-serif;      
+    background: white; 
+    border: 1px solid black;        
+    border-radius: 8px;         
+    pointer-events: none;           
+}
